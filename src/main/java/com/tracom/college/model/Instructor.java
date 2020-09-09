@@ -9,6 +9,9 @@ import javax.persistence.*;
 @Table(name = "instructors")
 public class Instructor extends BaseEntity {
 
+    @Column(name= "id_no", unique = true)
+    private String idNo;
+
     @Column(name = "first_name")
     private String firstName;
 
@@ -33,6 +36,14 @@ public class Instructor extends BaseEntity {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public String getIdNo() {
+        return idNo;
+    }
+
+    public void setIdNo(String idNo) {
+        this.idNo = idNo;
     }
 
     public String getLastName() {
