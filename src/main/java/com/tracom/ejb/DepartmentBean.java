@@ -38,7 +38,7 @@ public class DepartmentBean {
     }
 
     @SuppressWarnings({"unchecked"})
-    public List<Department> list(Department filter) throws Exception{
+    public List<Department> list(Department filter){
         String hql = "SELECT d FROM Department d WHERE d.id is not null";
 
         if (filter != null){

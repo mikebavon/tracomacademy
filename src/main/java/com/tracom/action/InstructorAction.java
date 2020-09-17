@@ -19,25 +19,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @WebServlet("instructor")
-public class InstructorAction extends HttpServlet {
-
-    @EJB
-    private InstructorBean instructorBean;
+public class InstructorAction  extends HttpServlet {
 
     @EJB
     private DepartmentBean departmentBean;
-
-    @Inject
-    private Instructor instructor;
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String errorMsg = "";
         boolean success = true;
 
+        Department department = new Department();
         try {
-            BeanUtils.populate(instructor, request.getParameterMap());
-            instructorBean.save(instructor);
+            BeanUtils.populate(department, request.getParameterMap());
+            departmentBean.save(department);
 
         }catch (Exception ex){
             ex.printStackTrace();
@@ -47,12 +42,12 @@ public class InstructorAction extends HttpServlet {
 
 
         if (success) {
-            response.sendRedirect("instructor?action=redirected");
+            response.sendRedirect("department");
 
         }else {
             RequestDispatcher dispatcher;
             request.setAttribute("errorMsg", errorMsg);
-            dispatcher = request.getRequestDispatcher("instructor/instructor_form.jsp");
+            dispatcher = request.getRequestDispatcher("department/department_form.jsp");
             dispatcher.forward(request, response);
         }
 
@@ -61,49 +56,37 @@ public class InstructorAction extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
-        boolean saveOrUpdate = false;
+        boolean edit = false;
 
+        Department filter = new Department();
         try {
-            BeanUtils.populate(instructor, request.getParameterMap());
+            BeanUtils.populate(filter, request.getParameterMap());
 
-            if (StringUtils.isNotBlank(instructor.getAction())){
-                if (instructor.getAction().equalsIgnoreCase("redirected")){
-                    instructor = null;
+            if (StringUtils.isNotBlank(filter.getAction()) && filter.getId() != 0){
+                if(filter.getAction().equalsIgnoreCase("delete"))
+                    departmentBean.delete(filter.getId());
 
-                }else if(instructor.getAction().equalsIgnoreCase("add")) {
-                    instructor = null;
-                    request.setAttribute("departments", departmentBean.list(new Department()));
-
-                    saveOrUpdate = true;
-
-                }else if(instructor.getId() != 0 && instructor.getAction().equalsIgnoreCase("delete")) {
-                    instructorBean.delete(instructor.getId());
-
-                }else if(instructor.getId() != 0 && instructor.getAction().equalsIgnoreCase("edit")) {
-                    request.setAttribute("instructor", instructorBean.load(instructor.getId()));
-                    request.setAttribute("departments", departmentBean.list(new Department()));
-
-                    saveOrUpdate = true;
-
+                if(filter.getAction().equalsIgnoreCase("edit")) {
+                    request.setAttribute("department", departmentBean.load(filter.getId()));
+                    edit = true;
                 }
             }
 
-            if (!saveOrUpdate)
-                request.setAttribute("instructors", instructorBean.list(instructor));
+            if (!edit)
+                request.setAttribute("departments", departmentBean.list(filter));
 
         }catch (Exception ex){
-            request.setAttribute("instructors", new ArrayList<Instructor>());
+            request.setAttribute("departments", new ArrayList<Department>());
         }
 
         RequestDispatcher dispatcher;
 
-        if (saveOrUpdate)
-            dispatcher = request.getRequestDispatcher("instructor/instructor_form.jsp");
+        if (edit)
+            dispatcher = request.getRequestDispatcher("department/department_form.jsp");
         else
-            dispatcher = request.getRequestDispatcher("instructor/instructors.jsp");
+            dispatcher = request.getRequestDispatcher("department/departments.jsp");
 
         dispatcher.forward(request, response);
     }
-
 
 }

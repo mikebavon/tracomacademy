@@ -6,7 +6,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,14 +21,12 @@ public class DepartmentAction extends HttpServlet {
     @EJB
     private DepartmentBean departmentBean;
 
-    @Inject
-    private Department department;
-
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String errorMsg = "";
         boolean success = true;
 
+        Department department = new Department();
         try {
             BeanUtils.populate(department, request.getParameterMap());
             departmentBean.save(department);
@@ -42,7 +39,7 @@ public class DepartmentAction extends HttpServlet {
 
 
         if (success) {
-            response.sendRedirect("department?action=redirected");
+            response.sendRedirect("department");
 
         }else {
             RequestDispatcher dispatcher;
@@ -58,24 +55,22 @@ public class DepartmentAction extends HttpServlet {
 
         boolean edit = false;
 
+        Department filter = new Department();
         try {
-            BeanUtils.populate(department, request.getParameterMap());
+            BeanUtils.populate(filter, request.getParameterMap());
 
-            if (StringUtils.isNotBlank(department.getAction())){
-                if(department.getId() != 0 && department.getAction().equalsIgnoreCase("delete")) {
-                    departmentBean.delete(department.getId());
+            if (StringUtils.isNotBlank(filter.getAction()) && filter.getId() != 0){
+                if(filter.getAction().equalsIgnoreCase("delete"))
+                    departmentBean.delete(filter.getId());
 
-                }else if(department.getId() != 0 &&  department.getAction().equalsIgnoreCase("edit")) {
-                    request.setAttribute("department", departmentBean.load(department.getId()));
+                if(filter.getAction().equalsIgnoreCase("edit")) {
+                    request.setAttribute("department", departmentBean.load(filter.getId()));
                     edit = true;
-
-                }else{
-                    department = null;
                 }
             }
 
             if (!edit)
-                request.setAttribute("departments", departmentBean.list(department));
+                request.setAttribute("departments", departmentBean.list(filter));
 
         }catch (Exception ex){
             request.setAttribute("departments", new ArrayList<Department>());
@@ -90,6 +85,4 @@ public class DepartmentAction extends HttpServlet {
 
         dispatcher.forward(request, response);
     }
-
-
 }
